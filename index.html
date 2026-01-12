@@ -41,6 +41,11 @@
   <p id="welcome"></p>
   <p id="levelInfo"></p>
   <input id="questInput" placeholder="새 퀘스트" />
+  <select id="difficulty">
+    <option value="easy">쉬움 (+5 EXP)</option>
+    <option value="normal" selected>보통 (+10 EXP)</option>
+    <option value="hard">어려움 (+20 EXP)</option>
+  </select>
   <button onclick="addQuest()">퀘스트 추가</button>
   <ul id="questList"></ul>
   <button onclick="logout()">로그아웃</button>
@@ -82,7 +87,8 @@
     if (!text) return;
     const user = localStorage.getItem('loginUser');
     const data = JSON.parse(localStorage.getItem('data_' + user) || '{"level":1,"exp":0,"quests":[]}');
-    data.quests.push({ text, done: false });
+    const diff = document.getElementById('difficulty').value;
+    data.quests.push({ text, done: false, diff });
     localStorage.setItem('data_' + user, JSON.stringify(data));
     questInput.value = '';
     loadQuests();
@@ -95,16 +101,21 @@
     data.quests.forEach((q, i) => {
       const li = document.createElement('li');
       li.className = q.done ? 'completed' : '';
-      li.innerText = q.text;
+      li.innerText = `${q.text} (${q.diff === 'easy' ? '쉬움' : q.diff === 'hard' ? '어려움' : '보통'})`;
       li.onclick = () => {
         if (!q.done) {
           q.done = true;
-          data.exp += 10;
+          let gain = 10;
+          if (q.diff === 'easy') gain = 5;
+          if (q.diff === 'hard') gain = 20;
+          data.exp += gain;
           if (data.exp >= data.level * 100) {
             data.exp = 0;
             data.level++;
             alert('레벨 업! Lv.' + data.level);
           }
+        } else {
+          q.done = false;
         } else {
           q.done = false;
         }
