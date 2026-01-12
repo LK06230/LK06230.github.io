@@ -9,9 +9,6 @@
       margin: 0;
       padding: 20px;
     }
-    h1 {
-      text-align: center;
-    }
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -20,54 +17,94 @@
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+    h1 { text-align: center; }
     input, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
       font-size: 16px;
     }
-    button {
-      cursor: pointer;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-    li.completed {
-      text-decoration: line-through;
-      color: gray;
-    }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; justify-content: space-between; padding: 8px; }
+    .completed { text-decoration: line-through; color: gray; }
+    .hidden { display: none; }
   </style>
 </head>
-<body>
+<body><div class="container" id="auth">
+  <h1>회원가입 / 로그인</h1>
+  <input id="username" placeholder="아이디" />
+  <input id="password" type="password" placeholder="비밀번호" />
+  <button onclick="signup()">회원가입</button>
+  <button onclick="login()">로그인</button>
+</div><div class="container hidden" id="app">
   <h1>🗺️ 퀘스트 시스템</h1>
-  <div class="container">
-    <input id="questInput" type="text" placeholder="새 퀘스트 이름 입력" />
-    <button onclick="addQuest()">퀘스트 추가</button><ul id="questList"></ul>
+  <p id="welcome"></p>
+  <input id="questInput" placeholder="새 퀘스트" />
+  <button onclick="addQuest()">퀘스트 추가</button>
+  <ul id="questList"></ul>
+  <button onclick="logout()">로그아웃</button>
+</div><script>
+  const authDiv = document.getElementById('auth');
+  const appDiv = document.getElementById('app');
 
-  </div>  <script>
-    function addQuest() {
-      const input = document.getElementById('questInput');
-      const text = input.value.trim();
-      if (!text) return;
+  function signup() {
+    const u = username.value;
+    const p = password.value;
+    if (!u || !p) return alert('입력해');
+    localStorage.setItem('user_' + u, p);
+    alert('회원가입 완료');
+  }
 
+  function login() {
+    const u = username.value;
+    const p = password.value;
+    if (localStorage.getItem('user_' + u) === p) {
+      localStorage.setItem('loginUser', u);
+      showApp();
+    } else alert('로그인 실패');
+  }
+
+  function logout() {
+    localStorage.removeItem('loginUser');
+    location.reload();
+  }
+
+  function showApp() {
+    authDiv.classList.add('hidden');
+    appDiv.classList.remove('hidden');
+    welcome.innerText = localStorage.getItem('loginUser') + ' 님 환영!';
+    loadQuests();
+  }
+
+  function addQuest() {
+    const text = questInput.value.trim();
+    if (!text) return;
+    const user = localStorage.getItem('loginUser');
+    const quests = JSON.parse(localStorage.getItem('quests_' + user) || '[]');
+    quests.push({ text, done: false });
+    localStorage.setItem('quests_' + user, JSON.stringify(quests));
+    questInput.value = '';
+    loadQuests();
+  }
+
+  function loadQuests() {
+    const user = localStorage.getItem('loginUser');
+    const quests = JSON.parse(localStorage.getItem('quests_' + user) || '[]');
+    questList.innerHTML = '';
+    quests.forEach((q, i) => {
       const li = document.createElement('li');
-      li.textContent = text;
+      li.className = q.done ? 'completed' : '';
+      li.innerText = q.text;
+      li.onclick = () => {
+        q.done = !q.done;
+        quests[i] = q;
+        localStorage.setItem('quests_' + user, JSON.stringify(quests));
+        loadQuests();
+      };
+      questList.appendChild(li);
+    });
+  }
 
-      const btn = document.createElement('button');
-      btn.textContent = '완료';
-      btn.onclick = () => li.classList.toggle('completed');
-
-      li.appendChild(btn);
-      document.getElementById('questList').appendChild(li);
-      input.value = '';
-    }
-  </script></body>
+  if (localStorage.getItem('loginUser')) showApp();
+</script></body>
 </html>
