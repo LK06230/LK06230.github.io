@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>메이커 · 퀘스트 생성</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    textarea {
+      min-height: 100px;
+    }
+    button {
+      margin-top: 24px;
+      padding: 14px;
+      width: 100%;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: bold;
+      background: #22c55e;
+      color: #022c22;
+      cursor: pointer;
+    }
+    .quest {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+    }
+    .quest small {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧑‍💼 퀘스트 생성 (메이커)</h1>
 
+    <label>퀘스트 제목</label>
+    <input id="title" placeholder="예: 로고 아이디어 3개 제안" />
+
+    <label>상세 설명</label>
+    <textarea id="description" placeholder="무엇을, 어떻게 해주면 되는지 설명하세요"></textarea>
+
+    <label>보상 금액 (가상)</label>
+    <input id="reward" type="number" placeholder="예: 5000" />
+
+    <label>마감 기한</label>
+    <input id="deadline" type="date" />
+
+    <label>카테고리</label>
+    <select id="category">
+      <option>디자인</option>
+      <option>글쓰기</option>
+      <option>조사</option>
+      <option>기타</option>
+    </select>
+
+    <label>필요 스킬 (쉼표로 구분)</label>
+    <input id="skills" placeholder="예: 포토샵, 기획" />
+
+    <button onclick="createQuest()">퀘스트 등록</button>
+
+    <h2 style="margin-top:40px;">📋 내가 만든 퀘스트</h2>
+    <div id="questList"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "quests";
+
+    function loadQuests() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }
+
+    function saveQuests(quests) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(quests));
+    }
+
+    function createQuest() {
+      const quest = {
+        id: Date.now(),
+        title: title.value,
+        description: description.value,
+        reward: Number(reward.value),
+        deadline: deadline.value,
+        category: category.value,
+        skills: skills.value.split(",").map(s => s.trim()),
+        status: "open",
+        maker: "maker-demo"
+      };
+
+      const quests = loadQuests();
+      quests.push(quest);
+      saveQuests(quests);
+
+      alert("퀘스트가 등록되었습니다!");
+      renderQuests();
+    }
+
+    function renderQuests() {
+      const quests = loadQuests();
+      questList.innerHTML = "";
+
+      quests.forEach(q => {
+        const div = document.createElement("div");
+        div.className = "quest";
+        div.innerHTML = `
+          <strong>${q.title}</strong><br />
+          💰 ${q.reward} | ⏰ ${q.deadline} | 📌 ${q.category}<br />
+          <small>상태: ${q.status}</small>
+        `;
+        questList.appendChild(div);
+      });
+    }
+
+    renderQuests();
+  </script>
+</body>
+</html>
