@@ -1,133 +1,82 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>퀘스트 시스템</title>
+  <title>Quest Market</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
     }
     .container {
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto;
-      background: white;
-      padding: 20px;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    .buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    a {
+      display: inline-block;
+      padding: 16px 28px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
-    h1 { text-align: center; }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
+    a:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
     }
-    ul { list-style: none; padding: 0; }
-    li { display: flex; justify-content: space-between; padding: 8px; }
-    .completed { text-decoration: line-through; color: gray; }
-    .hidden { display: none; }
+    .maker {
+      background: #22c55e;
+      color: #022c22;
+    }
+    .solver {
+      background: #38bdf8;
+      color: #022c22;
+    }
+    footer {
+      margin-top: 80px;
+      font-size: 0.85rem;
+      opacity: 0.6;
+    }
   </style>
 </head>
-<body><div class="container" id="auth">
-  <h1>회원가입 / 로그인</h1>
-  <input id="username" placeholder="아이디" />
-  <input id="password" type="password" placeholder="비밀번호" />
-  <button onclick="signup()">회원가입</button>
-  <button onclick="login()">로그인</button>
-</div><div class="container hidden" id="app">
-  <h1>🗺️ 퀘스트 시스템</h1>
-  <p id="welcome"></p>
-  <p id="levelInfo"></p>
-  <input id="questInput" placeholder="새 퀘스트" />
-  <select id="difficulty">
-    <option value="easy">쉬움 (+5 EXP)</option>
-    <option value="normal" selected>보통 (+10 EXP)</option>
-    <option value="hard">어려움 (+20 EXP)</option>
-  </select>
-  <button onclick="addQuest()">퀘스트 추가</button>
-  <ul id="questList"></ul>
-  <button onclick="logout()">로그아웃</button>
-</div><script>
-  const authDiv = document.getElementById('auth');
-  const appDiv = document.getElementById('app');
+<body>
+  <div class="container">
+    <h1>💰 Quest Market</h1>
+    <p>
+      보상이 걸린 작은 퀘스트를 올리고<br />
+      가장 잘할 사람이 해결하는 초간단 작업 중개 플랫폼
+    </p>
 
-  function signup() {
-    const u = username.value;
-    const p = password.value;
-    if (!u || !p) return alert('입력해');
-    localStorage.setItem('user_' + u, p);
-    alert('회원가입 완료');
-  }
+    <div class="buttons">
+      <a class="maker" href="maker.html">🧑‍💼 메이커로 시작하기</a>
+      <a class="solver" href="solver.html">🧑‍🔧 솔버로 시작하기</a>
+    </div>
 
-  function login() {
-    const u = username.value;
-    const p = password.value;
-    if (localStorage.getItem('user_' + u) === p) {
-      localStorage.setItem('loginUser', u);
-      showApp();
-    } else alert('로그인 실패');
-  }
-
-  function logout() {
-    localStorage.removeItem('loginUser');
-    location.reload();
-  }
-
-  function showApp() {
-    authDiv.classList.add('hidden');
-    appDiv.classList.remove('hidden');
-    welcome.innerText = localStorage.getItem('loginUser') + ' 님 환영!';
-    loadQuests();
-  }
-
-  function addQuest() {
-    const text = questInput.value.trim();
-    if (!text) return;
-    const user = localStorage.getItem('loginUser');
-    const data = JSON.parse(localStorage.getItem('data_' + user) || '{"level":1,"exp":0,"quests":[]}');
-    const diff = document.getElementById('difficulty').value;
-    data.quests.push({ text, done: false, diff });
-    localStorage.setItem('data_' + user, JSON.stringify(data));
-    questInput.value = '';
-    loadQuests();
-  }
-
-  function loadQuests() {
-    const user = localStorage.getItem('loginUser');
-    const data = JSON.parse(localStorage.getItem('data_' + user) || '{"level":1,"exp":0,"quests":[]}');
-    questList.innerHTML = '';
-    data.quests.forEach((q, i) => {
-      const li = document.createElement('li');
-      li.className = q.done ? 'completed' : '';
-      li.innerText = `${q.text} (${q.diff === 'easy' ? '쉬움' : q.diff === 'hard' ? '어려움' : '보통'})`;
-      li.onclick = () => {
-        if (!q.done) {
-          q.done = true;
-          let gain = 10;
-          if (q.diff === 'easy') gain = 5;
-          if (q.diff === 'hard') gain = 20;
-          data.exp += gain;
-          if (data.exp >= data.level * 100) {
-            data.exp = 0;
-            data.level++;
-            alert('레벨 업! Lv.' + data.level);
-          }
-        } else {
-          q.done = false;
-        } else {
-          q.done = false;
-        }
-        data.quests[i] = q;
-        localStorage.setItem('data_' + user, JSON.stringify(data));
-        loadQuests();
-      };
-      questList.appendChild(li);
-    });
-    document.getElementById('levelInfo').innerText = `Lv.${data.level} | EXP ${data.exp}/${data.level * 100}`;
-  }
-
-  if (localStorage.getItem('loginUser')) showApp();
-</script></body>
+    <footer>
+      MVP · 가상 보상 기반 · 실험적 프로젝트
+    </footer>
+  </div>
+</body>
 </html>
