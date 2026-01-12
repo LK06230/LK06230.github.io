@@ -39,6 +39,7 @@
 </div><div class="container hidden" id="app">
   <h1>🗺️ 퀘스트 시스템</h1>
   <p id="welcome"></p>
+  <p id="levelInfo"></p>
   <input id="questInput" placeholder="새 퀘스트" />
   <button onclick="addQuest()">퀘스트 추가</button>
   <ul id="questList"></ul>
@@ -80,29 +81,40 @@
     const text = questInput.value.trim();
     if (!text) return;
     const user = localStorage.getItem('loginUser');
-    const quests = JSON.parse(localStorage.getItem('quests_' + user) || '[]');
-    quests.push({ text, done: false });
-    localStorage.setItem('quests_' + user, JSON.stringify(quests));
+    const data = JSON.parse(localStorage.getItem('data_' + user) || '{"level":1,"exp":0,"quests":[]}');
+    data.quests.push({ text, done: false });
+    localStorage.setItem('data_' + user, JSON.stringify(data));
     questInput.value = '';
     loadQuests();
   }
 
   function loadQuests() {
     const user = localStorage.getItem('loginUser');
-    const quests = JSON.parse(localStorage.getItem('quests_' + user) || '[]');
+    const data = JSON.parse(localStorage.getItem('data_' + user) || '{"level":1,"exp":0,"quests":[]}');
     questList.innerHTML = '';
-    quests.forEach((q, i) => {
+    data.quests.forEach((q, i) => {
       const li = document.createElement('li');
       li.className = q.done ? 'completed' : '';
       li.innerText = q.text;
       li.onclick = () => {
-        q.done = !q.done;
-        quests[i] = q;
-        localStorage.setItem('quests_' + user, JSON.stringify(quests));
+        if (!q.done) {
+          q.done = true;
+          data.exp += 10;
+          if (data.exp >= data.level * 100) {
+            data.exp = 0;
+            data.level++;
+            alert('레벨 업! Lv.' + data.level);
+          }
+        } else {
+          q.done = false;
+        }
+        data.quests[i] = q;
+        localStorage.setItem('data_' + user, JSON.stringify(data));
         loadQuests();
       };
       questList.appendChild(li);
     });
+    document.getElementById('levelInfo').innerText = `Lv.${data.level} | EXP ${data.exp}/${data.level * 100}`;
   }
 
   if (localStorage.getItem('loginUser')) showApp();
