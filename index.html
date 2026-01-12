@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>퀘스트 시스템</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    li.completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1>🗺️ 퀘스트 시스템</h1>
+  <div class="container">
+    <input id="questInput" type="text" placeholder="새 퀘스트 이름 입력" />
+    <button onclick="addQuest()">퀘스트 추가</button><ul id="questList"></ul>
+
+  </div>  <script>
+    function addQuest() {
+      const input = document.getElementById('questInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const li = document.createElement('li');
+      li.textContent = text;
+
+      const btn = document.createElement('button');
+      btn.textContent = '완료';
+      btn.onclick = () => li.classList.toggle('completed');
+
+      li.appendChild(btn);
+      document.getElementById('questList').appendChild(li);
+      input.value = '';
+    }
+  </script></body>
+</html>
