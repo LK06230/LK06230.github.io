@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+<h2 id="balance"></h2>
 <head>
 <meta charset="UTF-8">
 <title>솔버</title>
@@ -35,6 +36,8 @@ small{opacity:.7}
 </div>
 
 <script>
+const user=JSON.parse(localStorage.getItem("currentUser"));
+
 const SOLVER="solver-demo";
 const QUEST_KEY="quests";
 const APPLY_KEY="applications";
@@ -68,6 +71,10 @@ function submitQuest(id){
 }
 
 function render(){
+  const users=JSON.parse(localStorage.getItem("users"))||[];
+const me=users.find(u=>u.id===user.id);
+balance.innerText = me ? `💰 잔액: ${me.balance}` : "💰 잔액: 0";
+  
   open.innerHTML="";
   applied.innerHTML="";
   doing.innerHTML="";
