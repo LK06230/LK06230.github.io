@@ -18,5 +18,15 @@ font-weight:bold;text-decoration:none}
   <p>보상이 걸린 초간단 작업 중개 플랫폼</p>
   <a href="login.html">시작하기</a>
 </div>
+<button onclick="resetAll()">⚠ 전체 초기화</button>
+
+<script>
+function resetAll(){
+  if(confirm("모든 데이터가 삭제됩니다. 진짜요?")){
+    localStorage.clear();
+    location.reload();
+  }
+}
+</script>
 </body>
 </html>
