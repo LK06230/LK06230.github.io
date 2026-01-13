@@ -2,25 +2,25 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>로그인</title>
+<title>Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:system-ui;background:#020617;color:#e5e7eb;
-display:flex;align-items:center;justify-content:center;height:100vh}
-.box{background:#0f172a;padding:30px;border-radius:12px;width:300px}
-button{width:100%;margin-top:12px;padding:10px;border:none;
-border-radius:8px;font-weight:bold;cursor:pointer}
-.maker{background:#22c55e;color:#022c22}
-.solver{background:#38bdf8;color:#022c22}
+body{background:#020617;color:#e5e7eb;
+display:flex;justify-content:center;align-items:center;height:100vh}
+.box{background:#0f172a;padding:30px;border-radius:12px;width:280px}
+button{width:100%;margin-top:10px;padding:10px;border:none;
+border-radius:8px;font-weight:bold}
+.maker{background:#22c55e}
+.solver{background:#38bdf8}
 </style>
 </head>
 <body>
 
 <div class="box">
   <h2>로그인</h2>
-  <input id="uid" placeholder="아이디 입력" style="width:100%;padding:8px">
-  <button class="maker" onclick="login('maker')">메이커로 시작</button>
-  <button class="solver" onclick="login('solver')">솔버로 시작</button>
+  <input id="uid" placeholder="아이디" style="width:100%;padding:8px">
+  <button class="maker" onclick="login('maker')">메이커</button>
+  <button class="solver" onclick="login('solver')">솔버</button>
 </div>
 
 <script>
@@ -31,6 +31,11 @@ function login(role){
     balance: 0
   };
   localStorage.setItem("currentUser",JSON.stringify(user));
+
+  const users=JSON.parse(localStorage.getItem("users"))||[];
+  if(!users.find(u=>u.id===user.id)) users.push(user);
+  localStorage.setItem("users",JSON.stringify(users));
+
   location.href = role==="maker" ? "maker.html" : "solver.html";
 }
 </script>
