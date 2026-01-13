@@ -2,140 +2,102 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>메이커</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maker</title>
 <style>
-body{font-family:system-ui;background:#020617;color:#e5e7eb;padding:30px}
-h1,h2{margin-top:40px}
-input,textarea,select{
-  width:100%;padding:10px;margin-top:6px;
-  border-radius:6px;border:none;background:#0f172a;color:#e5e7eb
-}
-button{
-  margin-top:10px;padding:8px 12px;
-  border:none;border-radius:6px;font-weight:bold;cursor:pointer
-}
-.create{background:#22c55e;color:#022c22}
-.select{background:#38bdf8;color:#022c22}
-.quest{background:#0f172a;padding:16px;border-radius:10px;margin-top:16px}
-small{opacity:.7}
+body{background:#020617;color:#e5e7eb;font-family:system-ui;padding:20px}
+input,textarea{width:100%;margin:6px 0;padding:6px}
+.quest{border:1px solid #334155;padding:10px;margin-top:10px}
+button{margin-top:6px}
 </style>
 </head>
 <body>
 
-<h1>🧑‍💼 메이커</h1>
-
-<!-- 1️⃣ 퀘스트 생성 -->
-<h2>➕ 퀘스트 생성</h2>
+<h2>🧑‍💼 메이커</h2>
 
 <input id="title" placeholder="퀘스트 제목">
-<textarea id="desc" placeholder="상세 설명"></textarea>
+<textarea id="desc" placeholder="설명"></textarea>
 <input id="reward" type="number" placeholder="보상 금액">
-<input id="deadline" type="date">
-<select id="category">
-  <option>디자인</option>
-  <option>글쓰기</option>
-  <option>조사</option>
-</select>
+<button onclick="createQuest()">퀘스트 등록</button>
 
-<button class="create" onclick="createQuest()">퀘스트 등록</button>
-
-<!-- 2️⃣ 퀘스트 관리 -->
-<h2>📋 내가 만든 퀘스트</h2>
+<hr>
 <div id="list"></div>
 
 <script>
-const QUEST_KEY="quests";
-const APPLY_KEY="applications";
-
-let quests=JSON.parse(localStorage.getItem(QUEST_KEY))||[];
-let apps=JSON.parse(localStorage.getItem(APPLY_KEY))||[];
+const user=JSON.parse(localStorage.getItem("currentUser"));
+let quests=JSON.parse(localStorage.getItem("quests"))||[];
 
 function save(){
-  localStorage.setItem(QUEST_KEY,JSON.stringify(quests));
-  localStorage.setItem(APPLY_KEY,JSON.stringify(apps));
+  localStorage.setItem("quests",JSON.stringify(quests));
   render();
 }
 
 function createQuest(){
   quests.push({
     id:Date.now(),
+    maker:user.id,
     title:title.value,
-    description:desc.value,
-    reward:reward.value,
-    deadline:deadline.value,
-    category:category.value,
-    status:"open"
+    desc:desc.value,
+    reward:Number(reward.value),
+    status:"open",
+    applicants:[],
+    assigned:null
   });
   save();
 }
 
-function selectSolver(qid,sid){
+function selectSolver(qid,solver){
   const q=quests.find(q=>q.id===qid);
+  q.assigned=solver;
   q.status="in_progress";
-  q.assignedSolverId=sid;
+  save();
+}
 
-  function approveQuest(qid){
+function approve(qid){
   const q=quests.find(q=>q.id===qid);
   q.status="completed";
 
-  const solverId=q.assignedSolverId;
   const users=JSON.parse(localStorage.getItem("users"))||[];
-
-  let solver=users.find(u=>u.id===solverId);
-  if(!solver){
-    solver={id:solverId,role:"solver",balance:0};
-    users.push(solver);
-  }
-
-  solver.balance += Number(q.reward);
+  const solver=users.find(u=>u.id===q.assigned);
+  solver.balance+=q.reward;
   localStorage.setItem("users",JSON.stringify(users));
-  save();
-}
-  
-  apps.forEach(a=>{
-    if(a.questId===qid){
-      a.status=a.solverId===sid?"accepted":"rejected";
-    }
-  });
+
   save();
 }
 
 function render(){
   list.innerHTML="";
-  quests.forEach(q=>{
-    const div=document.createElement("div");
-    div.className="quest";
-
-    const related=apps.filter(a=>a.questId===q.id && a.status==="applied");
-
-    div.innerHTML=`
-      <strong>${q.title}</strong><br>
+  quests.filter(q=>q.maker===user.id).forEach(q=>{
+    const d=document.createElement("div");
+    d.className="quest";
+    d.innerHTML=`
+      <b>${q.title}</b><br>
       상태: ${q.status}<br>
-      <small>지원자: ${related.length}</small>
+      보상: ${q.reward}
     `;
 
-    related.forEach(a=>{
-      const btn=document.createElement("button");
-      btn.className="select";
-      btn.textContent=`${a.solverId} 선택`;
-      btn.onclick=()=>selectSolver(q.id,a.solverId);
-      div.appendChild(document.createElement("br"));
-      div.appendChild(btn);
-    });
+    if(q.status==="open"){
+      q.applicants.forEach(s=>{
+        const b=document.createElement("button");
+        b.textContent=s+" 선택";
+        b.onclick=()=>selectSolver(q.id,s);
+        d.appendChild(document.createElement("br"));
+        d.appendChild(b);
+      });
+    }
 
-    list.appendChild(div);
+    if(q.status==="review"){
+      const b=document.createElement("button");
+      b.textContent="승인 & 보상 지급";
+      b.onclick=()=>approve(q.id);
+      d.appendChild(document.createElement("br"));
+      d.appendChild(b);
+    }
+
+    list.appendChild(d);
   });
 }
-
 render();
-  if(q.status==="review"){
-  const btn=document.createElement("button");
-  btn.textContent="승인 & 보상 지급";
-  btn.onclick=()=>approveQuest(q.id);
-  div.appendChild(document.createElement("br"));
-  div.appendChild(btn);
-}
 </script>
+
 </body>
 </html>
