@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>로그인</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:system-ui;background:#020617;color:#e5e7eb;
+display:flex;align-items:center;justify-content:center;height:100vh}
+.box{background:#0f172a;padding:30px;border-radius:12px;width:300px}
+button{width:100%;margin-top:12px;padding:10px;border:none;
+border-radius:8px;font-weight:bold;cursor:pointer}
+.maker{background:#22c55e;color:#022c22}
+.solver{background:#38bdf8;color:#022c22}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>로그인</h2>
+  <input id="uid" placeholder="아이디 입력" style="width:100%;padding:8px">
+  <button class="maker" onclick="login('maker')">메이커로 시작</button>
+  <button class="solver" onclick="login('solver')">솔버로 시작</button>
+</div>
+
+<script>
+function login(role){
+  const user={
+    id: uid.value || role+"-demo",
+    role,
+    balance: 0
+  };
+  localStorage.setItem("currentUser",JSON.stringify(user));
+  location.href = role==="maker" ? "maker.html" : "solver.html";
+}
+</script>
+
+</body>
+</html>
