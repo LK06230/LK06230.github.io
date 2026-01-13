@@ -75,6 +75,24 @@ function selectSolver(qid,sid){
   q.status="in_progress";
   q.assignedSolverId=sid;
 
+  function approveQuest(qid){
+  const q=quests.find(q=>q.id===qid);
+  q.status="completed";
+
+  const solverId=q.assignedSolverId;
+  const users=JSON.parse(localStorage.getItem("users"))||[];
+
+  let solver=users.find(u=>u.id===solverId);
+  if(!solver){
+    solver={id:solverId,role:"solver",balance:0};
+    users.push(solver);
+  }
+
+  solver.balance += Number(q.reward);
+  localStorage.setItem("users",JSON.stringify(users));
+  save();
+}
+  
   apps.forEach(a=>{
     if(a.questId===qid){
       a.status=a.solverId===sid?"accepted":"rejected";
@@ -111,6 +129,13 @@ function render(){
 }
 
 render();
+  if(q.status==="review"){
+  const btn=document.createElement("button");
+  btn.textContent="승인 & 보상 지급";
+  btn.onclick=()=>approveQuest(q.id);
+  div.appendChild(document.createElement("br"));
+  div.appendChild(btn);
+}
 </script>
 </body>
 </html>
