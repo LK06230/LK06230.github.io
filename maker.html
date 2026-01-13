@@ -1,146 +1,77 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>메이커 · 퀘스트 생성</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 40px 20px;
-    }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    h1 {
-      margin-bottom: 24px;
-    }
-    label {
-      display: block;
-      margin-top: 16px;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
-    textarea {
-      min-height: 100px;
-    }
-    button {
-      margin-top: 24px;
-      padding: 14px;
-      width: 100%;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      font-weight: bold;
-      background: #22c55e;
-      color: #022c22;
-      cursor: pointer;
-    }
-    .quest {
-      background: #0f172a;
-      padding: 16px;
-      border-radius: 10px;
-      margin-top: 16px;
-    }
-    .quest small {
-      opacity: 0.7;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>메이커 · 퀘스트 관리</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:system-ui;background:#020617;color:#e5e7eb;padding:30px}
+.quest{background:#0f172a;padding:16px;border-radius:10px;margin-bottom:20px}
+button{margin-top:8px;padding:8px 12px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
+.select{background:#22c55e;color:#022c22}
+small{opacity:.7}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧑‍💼 퀘스트 생성 (메이커)</h1>
 
-    <label>퀘스트 제목</label>
-    <input id="title" placeholder="예: 로고 아이디어 3개 제안" />
+<h1>🧑‍💼 메이커 · 퀘스트 관리</h1>
+<div id="list"></div>
 
-    <label>상세 설명</label>
-    <textarea id="description" placeholder="무엇을, 어떻게 해주면 되는지 설명하세요"></textarea>
+<script>
+const QUEST_KEY="quests";
+const APPLY_KEY="applications";
 
-    <label>보상 금액 (가상)</label>
-    <input id="reward" type="number" placeholder="예: 5000" />
+const quests=JSON.parse(localStorage.getItem(QUEST_KEY))||[];
+const apps=JSON.parse(localStorage.getItem(APPLY_KEY))||[];
+const list=document.getElementById("list");
 
-    <label>마감 기한</label>
-    <input id="deadline" type="date" />
+function save(){
+  localStorage.setItem(QUEST_KEY,JSON.stringify(quests));
+  localStorage.setItem(APPLY_KEY,JSON.stringify(apps));
+  render();
+}
 
-    <label>카테고리</label>
-    <select id="category">
-      <option>디자인</option>
-      <option>글쓰기</option>
-      <option>조사</option>
-      <option>기타</option>
-    </select>
+function selectSolver(questId,solverId){
+  const q=quests.find(q=>q.id===questId);
+  q.status="in_progress";
+  q.assignedSolverId=solverId;
 
-    <label>필요 스킬 (쉼표로 구분)</label>
-    <input id="skills" placeholder="예: 포토샵, 기획" />
-
-    <button onclick="createQuest()">퀘스트 등록</button>
-
-    <h2 style="margin-top:40px;">📋 내가 만든 퀘스트</h2>
-    <div id="questList"></div>
-  </div>
-
-  <script>
-    const STORAGE_KEY = "quests";
-
-    function loadQuests() {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  apps.forEach(a=>{
+    if(a.questId===questId){
+      a.status=a.solverId===solverId?"accepted":"rejected";
     }
+  });
+  save();
+}
 
-    function saveQuests(quests) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(quests));
-    }
+function render(){
+  list.innerHTML="";
+  quests.forEach(q=>{
+    const div=document.createElement("div");
+    div.className="quest";
 
-    function createQuest() {
-      const quest = {
-        id: Date.now(),
-        title: title.value,
-        description: description.value,
-        reward: Number(reward.value),
-        deadline: deadline.value,
-        category: category.value,
-        skills: skills.value.split(",").map(s => s.trim()),
-        status: "open",
-        maker: "maker-demo"
-      };
+    const related=apps.filter(a=>a.questId===q.id && a.status==="applied");
 
-      const quests = loadQuests();
-      quests.push(quest);
-      saveQuests(quests);
+    div.innerHTML=`
+      <strong>${q.title}</strong><br>
+      상태: ${q.status}<br>
+      <small>지원자 수: ${related.length}</small>
+    `;
 
-      alert("퀘스트가 등록되었습니다!");
-      renderQuests();
-    }
+    related.forEach(a=>{
+      const btn=document.createElement("button");
+      btn.className="select";
+      btn.textContent=`${a.solverId} 선택`;
+      btn.onclick=()=>selectSolver(q.id,a.solverId);
+      div.appendChild(document.createElement("br"));
+      div.appendChild(btn);
+    });
 
-    function renderQuests() {
-      const quests = loadQuests();
-      questList.innerHTML = "";
+    list.appendChild(div);
+  });
+}
 
-      quests.forEach(q => {
-        const div = document.createElement("div");
-        div.className = "quest";
-        div.innerHTML = `
-          <strong>${q.title}</strong><br />
-          💰 ${q.reward} | ⏰ ${q.deadline} | 📌 ${q.category}<br />
-          <small>상태: ${q.status}</small>
-        `;
-        questList.appendChild(div);
-      });
-    }
-
-    renderQuests();
-  </script>
+render();
+</script>
 </body>
 </html>
