@@ -2,28 +2,54 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>메이커 · 퀘스트 관리</title>
+<title>메이커</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{font-family:system-ui;background:#020617;color:#e5e7eb;padding:30px}
-.quest{background:#0f172a;padding:16px;border-radius:10px;margin-bottom:20px}
-button{margin-top:8px;padding:8px 12px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.select{background:#22c55e;color:#022c22}
+h1,h2{margin-top:40px}
+input,textarea,select{
+  width:100%;padding:10px;margin-top:6px;
+  border-radius:6px;border:none;background:#0f172a;color:#e5e7eb
+}
+button{
+  margin-top:10px;padding:8px 12px;
+  border:none;border-radius:6px;font-weight:bold;cursor:pointer
+}
+.create{background:#22c55e;color:#022c22}
+.select{background:#38bdf8;color:#022c22}
+.quest{background:#0f172a;padding:16px;border-radius:10px;margin-top:16px}
 small{opacity:.7}
 </style>
 </head>
 <body>
 
-<h1>🧑‍💼 메이커 · 퀘스트 관리</h1>
+<h1>🧑‍💼 메이커</h1>
+
+<!-- 1️⃣ 퀘스트 생성 -->
+<h2>➕ 퀘스트 생성</h2>
+
+<input id="title" placeholder="퀘스트 제목">
+<textarea id="desc" placeholder="상세 설명"></textarea>
+<input id="reward" type="number" placeholder="보상 금액">
+<input id="deadline" type="date">
+<select id="category">
+  <option>디자인</option>
+  <option>글쓰기</option>
+  <option>조사</option>
+</select>
+
+<button class="create" onclick="createQuest()">퀘스트 등록</button>
+
+<!-- 2️⃣ 퀘스트 관리 -->
+<h2>📋 내가 만든 퀘스트</h2>
 <div id="list"></div>
 
 <script>
 const QUEST_KEY="quests";
 const APPLY_KEY="applications";
 
-const quests=JSON.parse(localStorage.getItem(QUEST_KEY))||[];
-const apps=JSON.parse(localStorage.getItem(APPLY_KEY))||[];
-const list=document.getElementById("list");
+let quests=JSON.parse(localStorage.getItem(QUEST_KEY))||[];
+let apps=JSON.parse(localStorage.getItem(APPLY_KEY))||[];
 
 function save(){
   localStorage.setItem(QUEST_KEY,JSON.stringify(quests));
@@ -31,14 +57,27 @@ function save(){
   render();
 }
 
-function selectSolver(questId,solverId){
-  const q=quests.find(q=>q.id===questId);
+function createQuest(){
+  quests.push({
+    id:Date.now(),
+    title:title.value,
+    description:desc.value,
+    reward:reward.value,
+    deadline:deadline.value,
+    category:category.value,
+    status:"open"
+  });
+  save();
+}
+
+function selectSolver(qid,sid){
+  const q=quests.find(q=>q.id===qid);
   q.status="in_progress";
-  q.assignedSolverId=solverId;
+  q.assignedSolverId=sid;
 
   apps.forEach(a=>{
-    if(a.questId===questId){
-      a.status=a.solverId===solverId?"accepted":"rejected";
+    if(a.questId===qid){
+      a.status=a.solverId===sid?"accepted":"rejected";
     }
   });
   save();
@@ -55,7 +94,7 @@ function render(){
     div.innerHTML=`
       <strong>${q.title}</strong><br>
       상태: ${q.status}<br>
-      <small>지원자 수: ${related.length}</small>
+      <small>지원자: ${related.length}</small>
     `;
 
     related.forEach(a=>{
