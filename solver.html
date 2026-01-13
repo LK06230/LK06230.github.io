@@ -1,153 +1,65 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>솔버 · 퀘스트 탐색</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 40px 20px;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    h1 {
-      margin-bottom: 24px;
-    }
-    .quest {
-      background: #0f172a;
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-    }
-    .quest h3 {
-      margin: 0 0 8px 0;
-    }
-    .meta {
-      font-size: 0.9rem;
-      opacity: 0.8;
-      margin-bottom: 12px;
-    }
-    button {
-      padding: 10px 16px;
-      border-radius: 8px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      background: #38bdf8;
-      color: #022c22;
-    }
-    .applied {
-      background: #334155;
-      color: #94a3b8;
-      cursor: not-allowed;
-    }
-    .section {
-      margin-top: 40px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>솔버</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:system-ui;background:#020617;color:#e5e7eb;padding:30px}
+.quest{background:#0f172a;padding:16px;border-radius:10px;margin-bottom:16px}
+button{padding:8px 12px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;background:#38bdf8;color:#022c22}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧑‍🔧 퀘스트 탐색 (솔버)</h1>
 
-    <div id="questList"></div>
+<h1>🧑‍🔧 솔버</h1>
 
-    <div class="section">
-      <h2>📂 내가 지원한 퀘스트</h2>
-      <div id="myList"></div>
-    </div>
-  </div>
+<h2>📌 진행 중 퀘스트</h2>
+<div id="doing"></div>
 
-  <script>
-    const QUEST_KEY = "quests";
-    const APPLY_KEY = "applications";
-    const SOLVER_ID = "solver-demo";
+<script>
+const SOLVER="solver-demo";
+const QUEST_KEY="quests";
+const SUB_KEY="submissions";
 
-    function load(key) {
-      return JSON.parse(localStorage.getItem(key)) || [];
-    }
+const quests=JSON.parse(localStorage.getItem(QUEST_KEY))||[];
+const subs=JSON.parse(localStorage.getItem(SUB_KEY))||[];
+const doing=document.getElementById("doing");
 
-    function save(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
-    }
+function save(){
+  localStorage.setItem(SUB_KEY,JSON.stringify(subs));
+  localStorage.setItem(QUEST_KEY,JSON.stringify(quests));
+  render();
+}
 
-    function applyQuest(questId) {
-      const applications = load(APPLY_KEY);
+function submit(questId){
+  subs.push({
+    id:Date.now(),
+    questId,
+    solverId:SOLVER,
+    content:"완료했습니다!"
+  });
+  const q=quests.find(q=>q.id===questId);
+  q.status="review";
+  save();
+}
 
-      applications.push({
-        id: Date.now(),
-        questId,
-        solverId: SOLVER_ID,
-        status: "applied"
-      });
+function render(){
+  doing.innerHTML="";
+  quests.filter(q=>q.assignedSolverId===SOLVER && q.status==="in_progress")
+    .forEach(q=>{
+      const div=document.createElement("div");
+      div.className="quest";
+      div.innerHTML=`
+        <strong>${q.title}</strong><br>
+        <button>완료 보고</button>
+      `;
+      div.querySelector("button").onclick=()=>submit(q.id);
+      doing.appendChild(div);
+    });
+}
 
-      save(APPLY_KEY, applications);
-      render();
-    }
-
-    function hasApplied(questId) {
-      const applications = load(APPLY_KEY);
-      return applications.some(
-        a => a.questId === questId && a.solverId === SOLVER_ID
-      );
-    }
-
-    function render() {
-      const quests = load(QUEST_KEY);
-      const applications = load(APPLY_KEY);
-
-      questList.innerHTML = "";
-      myList.innerHTML = "";
-
-      quests.forEach(q => {
-        if (q.status !== "open") return;
-
-        const applied = hasApplied(q.id);
-
-        const div = document.createElement("div");
-        div.className = "quest";
-        div.innerHTML = `
-          <h3>${q.title}</h3>
-          <div class="meta">
-            💰 ${q.reward} · ⏰ ${q.deadline} · 📌 ${q.category}
-          </div>
-          <p>${q.description}</p>
-          <button ${applied ? "disabled class='applied'" : ""}>
-            ${applied ? "지원 완료" : "이 퀘스트에 지원하기"}
-          </button>
-        `;
-
-        const btn = div.querySelector("button");
-        if (!applied) {
-          btn.onclick = () => applyQuest(q.id);
-        }
-
-        questList.appendChild(div);
-      });
-
-      applications
-        .filter(a => a.solverId === SOLVER_ID)
-        .forEach(a => {
-          const quest = quests.find(q => q.id === a.questId);
-          if (!quest) return;
-
-          const div = document.createElement("div");
-          div.className = "quest";
-          div.innerHTML = `
-            <strong>${quest.title}</strong><br />
-            상태: ${a.status}
-          `;
-          myList.appendChild(div);
-        });
-    }
-
-    render();
-  </script>
+render();
+</script>
 </body>
 </html>
