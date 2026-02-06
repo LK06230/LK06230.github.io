@@ -1,53 +1,71 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>Quest Market</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui}
-.container{text-align:center;padding:100px 20px}
-a{display:inline-block;margin:20px;padding:16px 28px;
-background:#38bdf8;color:#022c22;border-radius:12px;
-font-weight:bold;text-decoration:none}
+// 간단한 React 컴포넌트 예시
 
- <style>
-#resetBtn{
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+import React, { useState } from 'react';
 
-  background: #ef4444;   /* 빨강 */
-  color: white;
+function App() {
+  const [userId, setUserId] = useState('');
+  const [role, setRole] = useState(null);
+  const [quests, setQuests] = useState([]);
+  const [supportingQuests, setSupportingQuests] = useState([]);
 
-  padding: 14px 18px;
-  font-size: 14px;
-  font-weight: bold;
+  const login = () => {
+    if(userId.trim() !== '') {
+      alert(`${userId}님 로그인 성공! 역할을 선택하세요.`);
+    }
+  };
 
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.4);
+  const createQuest = () => {
+    const questName = prompt('새 퀘스트 이름을 입력하세요.');
+    if(questName) {
+      setQuests([...quests, questName]);
+    }
+  };
 
-  z-index: 9999;
-}
- </style>
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>💰 Quest Market</h1>
-  <p>보상이 걸린 초간단 작업 중개 플랫폼</p>
-  <a href="login.html">시작하기</a>
-</div>
-<button onclick="resetAll()">⚠ 전체 초기화</button>
+  const supportQuest = () => {
+    const questName = prompt('지원할 퀘스트 이름을 입력하세요.');
+    if(questName) {
+      setSupportingQuests([...supportingQuests, questName]);
+    }
+  };
 
-<script>
-function resetAll(){
-  if(confirm("모든 데이터가 삭제됩니다. 진짜요?")){
-    localStorage.clear();
-    location.reload();
+  if(!userId) {
+    return (
+      <div>
+        <h2>로그인</h2>
+        <input placeholder="아이디 입력" value={userId} onChange={e => setUserId(e.target.value)} />
+        <button onClick={login}>로그인</button>
+      </div>
+    );
   }
+
+  if(!role) {
+    return (
+      <div>
+        <h2>역할 선택</h2>
+        <button onClick={() => setRole('maker')}>메이커</button>
+        <button onClick={() => setRole('solver')}>솔버</button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h2>{userId}님 - {role === 'maker' ? '메이커 페이지' : '솔버 페이지'}</h2>
+      {role === 'maker' ? (
+        <div>
+          <button onClick={createQuest}>퀘스트 생성</button>
+          <h3>내 퀘스트 목록</h3>
+          <ul>{quests.map((q,i) => <li key={i}>{q}</li>)}</ul>
+        </div>
+      ) : (
+        <div>
+          <button onClick={supportQuest}>퀘스트 지원</button>
+          <h3>지원한 퀘스트 목록</h3>
+          <ul>{supportingQuests.map((q,i) => <li key={i}>{q}</li>)}</ul>
+        </div>
+      )}
+    </div>
+  );
 }
-</script>
-</body>
-</html>
+
+export default App;
